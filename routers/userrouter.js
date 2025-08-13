@@ -1,5 +1,5 @@
 import express from "express";
-import {createUser, loginUser} from "../controllers/usercontroller.js"
+import {createUser, loginUser} from "../controllers/userController.js"
 
 
 //Router
@@ -12,4 +12,4 @@ const userRouter=express.Router();
 userRouter.post("/",createUser); 
 userRouter.post("/login",loginUser)
 
-export default userRouter
+export default userRouter;

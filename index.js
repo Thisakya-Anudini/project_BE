@@ -2,9 +2,10 @@
 import express from "express";
 import mongoose from "mongoose";
 import bodyParser from "body-parser";
-import studentRouter from "./routers/studentRouter.js";
-import userRouter from "./routers/userrouter.js";
+
+import userRouter from "./routers/userRouter.js";
 import jwt from "jsonwebtoken"
+import productRouter from "./routers/productRouter.js";
 
 
 
@@ -13,41 +14,30 @@ const app=express();
 //Middleware 
 app.use(bodyParser.json());
 
-app.use(
-    (req,res,next)=>{
-        //  if there is a token  
-        const value=req.header("Authorization")// token is here 
-        if(value!=null){
-        const token=value.replace("Bearer ","")// remove bearer
+app.use((req, res, next) => {
+    const value = req.header("Authorization");  // Get the token from the header
+    if (value != null) {
+        const token = value.replace("Bearer ", "");  // Remove the "Bearer" part
+        console.log("Token received:", token);  // Log the token to check if it’s being passed correctly
 
-        jwt.verify(token,"secret",(err,decoded)=>{//check token whether it is decoded or not
-            if(decoded == null)//if token was not decoded then decoded will be null  and error will be true
-                {
-                    res.status(403).json({//403 means forbidden
-                    message:"Unauthorized"//token is not valid
-                }
-                )
-                }
-
-            else{
-            req.user=decoded//token is valid and able to read the userdata nd proceed to            next()
-
-        } 
-
-        })
-
-        } else{ // if there is no token
-            next(); //proceed to next level
-        }          
-       
+        jwt.verify(token, "secret", (err, decoded) => {
+            if (err) {
+                console.error("Token verification failed:", err);  // Log token verification error
+                return res.status(403).json({ message: "Unauthorized" });
+            }
+            req.user = decoded;  // Attach the decoded user data to the request object
+            console.log("Decoded user:", decoded);  // Log the decoded user data
+            next();  // Proceed to the next middleware or route handler
+        });
+    } else {
+        next();  // If no token is provided, proceed without authentication
     }
-
-)
+});
  
 // Routers
-app.use("/students",studentRouter)
-app.use("/users",userRouter)
 
+app.use("/api/users",userRouter)
+app.use("/api/products", productRouter);
 
 
 
@@ -57,11 +47,12 @@ app.use("/users",userRouter)
 //Database
 const connectionstring="mongodb+srv://anu:anu@cluster0.cp7le2r.mongodb.net/dev?retryWrites=true&w=majority&appName=Cluster0"
 
-mongoose.connect(connectionstring).then(()=>{
+mongoose.connect(connectionstring).then(() => {
     console.log("Database connected");
-}).catch(()=>{
-    console.log("failed to connect");   
+}).catch((error) => {
+    console.error("Database connection error:", error);  // Log connection issues
 });
+
 
 
 

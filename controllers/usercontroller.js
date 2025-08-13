@@ -8,37 +8,16 @@ export function createUser(req,res){
         //authorization
     if(req.user==null){//if user is not logged in or not sent the  token
         res.status(403).json({
-            message:"please login to create a student"
+            message:"please login to create"
         })
         return
     }
     if(req.user.role != "admin"){//if user is not admin
         res.status(403).json({
-            message:"Only admin can create a student"
+            message:"Only admin can create "
         })
         return//stop the function from executing further code below
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     const passwordhash=bcrypt.hashSync(req.body.password,10)
 
     const userData ={
@@ -110,10 +89,17 @@ export function loginUser(req,res){
     }
 )  
 }
+export function isAdmin(req){
 
+    if (req.user== null){
+        return false;
+    }
+    if (req.user.role != "admin"){
+        return false;
+    }
 
-
-
+    return true
+}
 
 
 
