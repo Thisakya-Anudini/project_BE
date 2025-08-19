@@ -8,6 +8,13 @@ import jwt from "jsonwebtoken"
 import productRouter from "./routers/productRouter.js";
 
 
+import dotenv from 'dotenv';
+
+// Load environment variables with quiet mode (no logs)
+dotenv.config({ quiet: true });
+
+
+
 
 //App
 const app=express();
@@ -20,7 +27,7 @@ app.use((req, res, next) => {
         const token = value.replace("Bearer ", "");  // Remove the "Bearer" part
         console.log("Token received:", token);  // Log the token to check if it’s being passed correctly
 
-        jwt.verify(token, "secret", (err, decoded) => {
+        jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
             if (err) {
                 console.error("Token verification failed:", err);  // Log token verification error
                 return res.status(403).json({ message: "Unauthorized" });
@@ -45,7 +52,7 @@ app.use("/api/products", productRouter);
 
 
 //Database
-const connectionstring="mongodb+srv://anu:anu@cluster0.cp7le2r.mongodb.net/dev?retryWrites=true&w=majority&appName=Cluster0"
+const connectionstring=process.env.MONGO_URI
 
 mongoose.connect(connectionstring).then(() => {
     console.log("Database connected");
