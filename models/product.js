@@ -1,9 +1,8 @@
 import mongoose from "mongoose";
-//Schema
 
-const ProductSchema = new mongoose.Schema({
-    ProductID:{
-        type : String, 
+const productSchema = new mongoose.Schema({
+    productId :{
+        type: String,
         required: true,
         unique: true
     },
@@ -11,44 +10,45 @@ const ProductSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    alternativenames:{
+    altNames: {
         type: [String],
         default: []
     },
-    labelledprice:{
+    labelledPrice: {
         type: Number,
         required: true
-    }    ,
-    Price: {
-        type: Number,
-        required: true          
-
-    }  ,
-    images:{
-        type: [String],
-        default: [ "/default-product.jpg" ]
-
     },
+    price: {
+        type: Number,
+        required: true
+    },
+    images: {
+        type: [String],
+        default: ["/default product.jpg"]
+        },
     description: {
         type: String,
         required: true
     },
-    stock:{
+    category: { 
+        type: String,
+        required: true,
+        default: "cosmatics"
+    },
+    stock: {
         type: Number,
         required: true,
         default: 0
     },
-    category: {
-        type: String,
-        required: true
-    },
-    isAvailable:{
-        type:Boolean,
+    isAvailable: {
+        type: Boolean,
         default: true
     }
-    
-})
-//Model -collection & code  connector
-const Product = mongoose.model("products",ProductSchema)
+});
 
-export default Product
+const Product = mongoose.model("products", productSchema);
+
+export default Product;
+
+        
+    

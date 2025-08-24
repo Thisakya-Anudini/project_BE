@@ -1,109 +1,62 @@
-//Dependencies
 import express from "express";
 import mongoose from "mongoose";
 import bodyParser from "body-parser";
-
+import dotenv from "dotenv";
+dotenv.config();//load variables from .env file
 import userRouter from "./routers/userRouter.js";
-import jwt from "jsonwebtoken"
 import productRouter from "./routers/productRouter.js";
+import jwt from "jsonwebtoken"
+import cors from "cors"
+
+const app = express();
+
+app.use(bodyParser.json()); //app.use for add middleware
+app.use(cors())
 
 
-import dotenv from 'dotenv';
-
-// Load environment variables with quiet mode (no logs)
-dotenv.config({ quiet: true });
-
-
-
-
-//App
-const app=express();
-//Middleware 
-app.use(bodyParser.json());
-
-app.use((req, res, next) => {
-    const value = req.header("Authorization");  // Get the token from the header
-    if (value != null) {
-        const token = value.replace("Bearer ", "");  // Remove the "Bearer" part
-        console.log("Token received:", token);  // Log the token to check if it’s being passed correctly
-
-        jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-            if (err) {
-                console.error("Token verification failed:", err);  // Log token verification error
-                return res.status(403).json({ message: "Unauthorized" });
-            }
-            req.user = decoded;  // Attach the decoded user data to the request object
-            console.log("Decoded user:", decoded);  // Log the decoded user data
-            next();  // Proceed to the next middleware or route handler
-        });
-    } else {
-        next();  // If no token is provided, proceed without authentication
+app.use(
+    (req,res,next)=>{
+        const value =req.header("authorization");//get token
+        if (value!=null){
+            const token=value.replace("Bearer ","");//remove bearer from token  
+            
+            jwt.verify(token,process.env.JWT_SECRET,(err,decoded)=>{
+                if(decoded==null){res.status(403).json({message:"unauthorized"})}
+                
+                else{
+                    req.user=decoded;//add user object in request
+                    next();
+                }
+            })
+        }
+        else{
+            next();//pass request to default router
+        }
+        
+        
     }
-});
- 
-// Routers
+    
+)//middleware,for check token,add user object in request,for authentication
 
-app.use("/api/users",userRouter)
-app.use("/api/products", productRouter);
+const connectionString = process.env.MONGO_URI
+mongoose.connect(connectionString).then(
+    ()=>{
+        console.log("database connected"
 
+        )
+    }
+).catch(
+    ()=>{
+        console.log("failed to connect database");
+    }
+)
 
-
-
-
-
-//Database
-const connectionstring=process.env.MONGO_URI
-
-mongoose.connect(connectionstring).then(() => {
-    console.log("Database connected");
-}).catch((error) => {
-    console.error("Database connection error:", error);  // Log connection issues
-});
+    
 
 
+app.use("/api/users",userRouter);//api endpoint
+app.use("/api/products",productRouter);
 
-
-app.delete("/",(req,res)=>{
-    console.log(req.body);
-    res.json({
-        message:"This is a delete request"
-    })
-}
-)  
-
-               
-app.put("/",(req,res)=>{
-    console.log(req.body);
-    res.json({
-        message:"This is a put request"
-    })  
- 
-}
-)  
-
-//Server
 app.listen(5000,()=>{
     console.log("server started");
-    console.log("http://localhost:5000");
-    }) 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
+})
