@@ -8,9 +8,13 @@ const productRouter = express.Router();
 
 // POST route for creating a product
 productRouter.post("/", createProduct);
+
 productRouter.get("/", getProducts);
-productRouter.delete("/:productId", deleteProduct);
-productRouter.put("/:productId", updateProduct);
 productRouter.get("/:productId", getProductInfo);
+
+productRouter.delete("/:productId", deleteProduct);
+
+productRouter.put("/:productId", updateProduct);
+
 
 export default productRouter;
