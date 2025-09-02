@@ -7,6 +7,7 @@ import userRouter from "./routers/userRouter.js";
 import productRouter from "./routers/productRouter.js";
 import jwt from "jsonwebtoken"
 import cors from "cors"
+import orderRouter from "./routers/orderRouter.js"
 
 const app = express();
 
@@ -56,6 +57,7 @@ mongoose.connect(connectionString).then(
 
 app.use("/api/users",userRouter);//api endpoint
 app.use("/api/products",productRouter);
+app.use("/api/orders",orderRouter);
 
 app.listen(5000,()=>{
     console.log("server started");
