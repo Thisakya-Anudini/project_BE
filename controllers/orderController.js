@@ -2,36 +2,34 @@ import Order from "../models/order.js";
 import Product from "../models/product.js";
 import { isAdmin } from "./userController.js";
 
-
 export async function createOrder(req, res) {
+	try {
+		if (req.user == null) {
+			res.status(401).json({ message: "Please login to create an order" });
+			return;
+		}
+		// A00323
 
-    if (req.user == null) {
-        res.status(401).json({ message: "Please login first" })
-        return; 
-    }
-    //order ID= A00323      max 99999
+		const latestOrder = await Order.find().sort({ date: -1 }).limit(1);
 
+		let orderId = "A00323";
 
-    const latestOrder = await Order.find().sort({ date: -1 }).limit(1).exec();  //date -1 is for descending order . need to get latest order date   limit 1 is for getting only one order 
-      
-    let orderId="A00323"
-
-    if (latestOrder.length > 0) {
-        // if  latest order exists
-        const latestOrderIdString = latestOrder[0].orderId;//A00323
-
-        const latestOrderIdWithoutPrefix =latestOrderIdString.replace("A00", ""); //00323
-        const latestOrderIdInteger = parseInt(latestOrderIdWithoutPrefix);      //  323
-
-        const newOrderIdInteger = latestOrderIdInteger + 1;//324
-        const newOrderIdWithoutPrefix = newOrderIdInteger.toString().padStart(5, "0");//00324
-        orderId = "A00" + newOrderIdWithoutPrefix; //A00324
-    }
-		const items = [];//check if items are provided and it's in an array	
+		if (latestOrder.length > 0) {
+			//if old orders exist //"A00323"
+			const lastOrderIdInString = latestOrder[0].orderId; //"A00323"
+			const lastOrderIdWithoutPrefix = lastOrderIdInString.replace("A00", ""); //"00323"
+			const lastOrderIdInInteger = parseInt(lastOrderIdWithoutPrefix); //323
+			const newOrderIdInInteger = lastOrderIdInInteger + 1; //323
+			const newOrderIdWithoutPrefix = newOrderIdInInteger
+				.toString()
+				.padStart(5, "0"); // "00636"
+			orderId = "A00" + newOrderIdWithoutPrefix; // "CBC00636"
+		}
+		const items = [];
 		let total = 0;
 
-		if (req.body.items !== null && Array.isArray(req.body.items)) {    
-			for (let i = 0; i < req.body.items.length; i++) {//check if items are provided
+		if (req.body.items !== null && Array.isArray(req.body.items)) {
+			for (let i = 0; i < req.body.items.length; i++) {
 				let item = req.body.items[i];
 
 				// console.log(item)
@@ -51,12 +49,12 @@ export async function createOrder(req, res) {
 					name: product.name,
 					image: product.images[0],
 					price: product.price,
-					qty: item.qty,
+					quantity: item.quantity,
 				};
 
-				total += product.price * item.qty;
+				total += product.price * item.quantity;
 			}
-		} else {//if items are not provided as array
+		} else {
 			res.status(400).json({ message: "Invalid items format" });
 			return;
 		}
@@ -77,12 +75,15 @@ export async function createOrder(req, res) {
 			message: "Order created successfully",
 			result: result,
 		});
-    }
-
+	} catch (error) {
+		console.error("Error creating order:", error);
+		res.status(500).json({ message: "Failed to create order" });
+	}
+}
 
 export async function getOrders(req, res) {
-	const page = parseInt(req.params.page) || 1;
-	const limit = parseInt(req.params.limit) || 10;
+	const page = parseInt(req.params.page) || 1;  //string to number parseInt  because page is a string
+	const limit = parseInt(req.params.limit) || 10;   //for one page how many or default 10
 
 	if (req.user == null) {
 		res.status(401).json({ message: "Please login to view orders" });
@@ -92,18 +93,18 @@ export async function getOrders(req, res) {
 	try {
 		if (req.user.role == "admin") {
 
-			const orderCount = await Order.countDocuments();
+			const orderCount = await Order.countDocuments();//  count how many orders are there
 
-			const totalPages = Math.ceil(orderCount / limit);// Calculate total pages by rounding the division of total orders by limit
+			const totalPages = Math.ceil(orderCount / limit);// Calculate total pages by the division of total orders by limit and rounding off to celing value 
 
-            const orders = await Order.find().skip((page-1) *limit).limit(limit).sort({ date: -1 });
+            const orders = await Order.find().skip((page-1) *limit).limit(limit).sort({ date: -1 });   //skip first few multiples of limit  with page-1 and  get a particular page  adn    limit next 10
 
             res.json({
 				orders: orders,
 				totalPages: totalPages,
 			});
 		}else{
-			const orderCount = await Order.countDocuments({ email: req.user.email });
+			const orderCount = await Order.countDocuments({ email: req.user.email });   
 			const totalPages = Math.ceil(orderCount / limit);
             const orders = await Order.find({ email: req.user.email }).skip((page-1) * limit).limit(limit).sort({ date: -1 });
             res.json({
@@ -123,7 +124,7 @@ export function updateOrder(req,res){
 		const notes = req.body.notes;
 
 		Order.findOneAndUpdate(
-			{ orderID: orderId },
+			{ orderId: orderId },
 			{ status: status , notes: notes },
 			{ new: true }
 		).then(
@@ -148,23 +149,4 @@ export function updateOrder(req,res){
 			message : "You are not authorized to update orders"
 		})
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    } 
-
-   
-
-
-
-
+}
