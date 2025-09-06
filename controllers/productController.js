@@ -106,3 +106,23 @@ export async function getProductInfo(req, res) {
     return res.status(500).json({ message: "failed to fetch product info" });
   }
 }
+export async function searchProducts(req,res){ //search products
+	const query = req.params.query   //search query
+
+	try{
+		const products = await Product.find({   //find products   
+			$or: [  //if any of below correct   then  choose that product 
+				{name:  { $regex:query , $options: "i"}}, // regex is used  to find if  the    query  is  in anywhere inside the name  . dollar sign is used  to  avoid case sensitivity
+				{altNames : {$elemMatch : { $regex: query, $options: "i" }}} //to find if searched query is anywhere inside the alternative names
+
+
+			],
+			isAvailable: true			 //only available products
+		})
+		res.json(products);
+	}catch{
+		res.status(500).json({ message: "Failed to search products" });
+	}
+
+	
+}

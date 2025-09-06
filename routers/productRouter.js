@@ -1,5 +1,5 @@
 import express from "express";
-import { createProduct } from "../controllers/productController.js"; 
+import { createProduct, searchProducts } from "../controllers/productController.js"; 
 import { getProducts } from "../controllers/productController.js";
 import { deleteProduct } from "../controllers/productController.js";
 import { updateProduct } from "../controllers/productController.js";
@@ -15,6 +15,8 @@ productRouter.get("/:productId", getProductInfo);
 productRouter.delete("/:productId", deleteProduct);
 
 productRouter.put("/:productId", updateProduct);
+
+productRouter.get("/search/:query", searchProducts);
 
 
 export default productRouter;
