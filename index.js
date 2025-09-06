@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 dotenv.config();//load variables from .env file
-import userRouter from "./routers/userRouter.js";
+import userRouter from './routers/userRouter.js'
 import productRouter from "./routers/productRouter.js";
 import jwt from "jsonwebtoken"
 import cors from "cors"
